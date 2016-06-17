@@ -9,5 +9,3 @@ RUN useradd -m -d /home/ubuntu ubuntu -p `perl -e 'print crypt("password", "salt
 USER ubuntu
 WORKDIR /home/ubuntu
 ENV HOME=/home/ubuntu
-ENTRYPOINT ["bash"]
-CMD ["--login"]
