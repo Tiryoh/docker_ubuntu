@@ -12,5 +12,5 @@ WORKDIR /home/ubuntu
 ENV HOME=/home/ubuntu
 RUN git clone https://github.com/Tiryoh/oneliners.git && \
     git clone https://github.com/Tiryoh/dotfiles.git && \
-    /bin/bash -c 'cd ${HOME}/dotfiles; git checkout -b dev/autobuild origin/dev/autobuild; make vim-setup_for_docker'
+    /bin/bash -c 'cd ${HOME}/dotfiles; git checkout -b dev/autobuild origin/dev/autobuild; make vim-setup_for_docker; make bash'
 
