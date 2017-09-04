@@ -14,4 +14,4 @@ ENV HOME=/home/ubuntu
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8
 RUN git clone https://github.com/Tiryoh/oneliners.git && \
     git clone https://github.com/Tiryoh/dotfiles.git && \
-    /bin/bash -c 'cd ${HOME}/dotfiles; git checkout -b dev/autobuild origin/dev/autobuild; make vim-setup_for_docker; make bash'
+    /bin/bash -c 'cd ${HOME}/dotfiles; make vim; make deinvim; ./etc/docker/vim_setup.sh; make bash'
