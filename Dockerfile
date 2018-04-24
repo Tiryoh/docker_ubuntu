@@ -3,7 +3,7 @@ MAINTAINER tiryoh
 
 RUN apt-get update -q && \
     apt-get upgrade -yq && \
-    apt-get install -yq wget curl git build-essential vim sudo lsb-release locales && \
+    apt-get install -yq wget curl git build-essential vim sudo lsb-release locales bash-completion && \
     rm -rf /var/lib/apt/lists/*
 RUN useradd -m -d /home/ubuntu ubuntu -p `perl -e 'print crypt("ubuntu", "salt"),"\n"'` && \
     echo "ubuntu ALL=(ALL) ALL" >> /etc/sudoers
