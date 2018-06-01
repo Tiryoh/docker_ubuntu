@@ -2,6 +2,9 @@ FROM ubuntu:xenial
 MAINTAINER tiryoh
 
 RUN apt-get update -q && \
+    apt-get install -yq software-properties-common &&\
+    apt-add-repository ppa:jonathonf/vim && \
+    apt-get update -q && \
     apt-get upgrade -yq && \
     apt-get install -yq wget curl git build-essential vim sudo lsb-release locales bash-completion && \
     rm -rf /var/lib/apt/lists/*
