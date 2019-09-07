@@ -16,46 +16,44 @@ https://hub.docker.com/r/tiryoh/ubuntu/
 
 ## Revisions
 
-* trusty-bash
+* trusty-core(trusty-bash)
   * official ubuntu image(ubuntu:trusty) + wget + curl + git + build-essential + vim
   * Default user is non-root.  Check [Usage](#usage).
-* xenial-bash
+* xenial-core(xenial-bash)
   * official ubuntu image(ubuntu:xenial) + wget + curl + git + build-essential + vim
   * Default user is non-root.  Check [Usage](#usage).
-* bionic-bash
+* bionic-core(bionic-bash)
   * official ubuntu image(ubuntu:bionic) + wget + curl + git + build-essential + vim
   * Default user is non-root.  Check [Usage](#usage).
 * trusty
-  * trusty-bash + [oneliners](https://github.com/Tiryoh/oneliners) + [dotfiles](https://github.com/Tiryoh/dotfiles)
+  * trusty-core + [oneliners](https://github.com/Tiryoh/oneliners) + [dotfiles](https://github.com/Tiryoh/dotfiles)
 * xenial
-  * xenial-bash + [oneliners](https://github.com/Tiryoh/oneliners) + [dotfiles](https://github.com/Tiryoh/dotfiles)
+  * xenial-core + [oneliners](https://github.com/Tiryoh/oneliners) + [dotfiles](https://github.com/Tiryoh/dotfiles)
 * bionic
-  * bionic-bash + [oneliners](https://github.com/Tiryoh/oneliners) + [dotfiles](https://github.com/Tiryoh/dotfiles)
-* dev-trusty
+  * bionic-core + [oneliners](https://github.com/Tiryoh/oneliners) + [dotfiles](https://github.com/Tiryoh/dotfiles)
+* trusty-dev(dev-trusty)
   * trusty + NOPASSWD
-* dev-xenial
+* xenial-dev(dev-xenial)
   * xenial + NOPASSWD
-* dev-bionic
+* bionic-dev(dev-bionic)
   * bionic + NOPASSWD
 * latest(master)
   * same as xenial
 
 ## Usage
 
-First, pull docker image.
-```
-docker pull tiryoh/ubuntu:<revision>
-```
+Default username is "ubuntu", password is "ubuntu".
 
-And then, run docker containter.  Add `--rm` option to remove containter image when you exit the containter.
-```
+Run docker containter.  Add `--rm` option to remove the containter when you exit it.
+
+```sh
 docker run -it --rm tiryoh/ubuntu:<revision>
 ```
 
-Default username is "ubuntu", password is "ubuntu".
 
 ## License
 
-This repository is licensed under the MIT license, see [LICENSE](./LICENSE).
+(C) 2016 - 2019 Tiryoh
 
+This repository is licensed under the MIT license, see [LICENSE](./LICENSE).  
 Unless attributed otherwise, everything in this repository is under the MIT license.

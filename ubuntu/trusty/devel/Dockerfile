@@ -1,5 +1,5 @@
-FROM ubuntu:xenial
-MAINTAINER tiryoh
+FROM ubuntu:trusty
+LABEL maintainer="Tiryoh <tiryoh@gmail.com>"
 
 RUN apt-get update -q && \
     apt-get install -yq software-properties-common &&\
@@ -9,7 +9,7 @@ RUN apt-get update -q && \
     apt-get install -yq wget curl git build-essential vim sudo lsb-release locales bash-completion && \
     rm -rf /var/lib/apt/lists/*
 RUN useradd -m -d /home/ubuntu ubuntu -p `perl -e 'print crypt("ubuntu", "salt"),"\n"'` && \
-    echo "ubuntu ALL=(ALL) ALL" >> /etc/sudoers
+    echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 RUN locale-gen en_US.UTF-8
 USER ubuntu
 WORKDIR /home/ubuntu
