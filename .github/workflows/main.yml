@@ -35,7 +35,7 @@ jobs:
         run: |
           if [[ "$GITHUB_ACTIONS_EVENT_NAME" == "schedule" ]]; then
               echo "##[set-output name=status;]$(echo 'push')"
-          elif [[ $(git diff --name-only HEAD HEAD^ | grep -o ${DISTRO} | grep -o ${TARGET}) ]]; then
+          elif [[ $(git diff --name-only HEAD HEAD^ | grep ${DISTRO} | grep ${TARGET}) ]]; then
             if [[ "$GITHUB_ACTIONS_BRANCH" == "master" ]]; then
               echo "##[set-output name=status;]$(echo 'build_and_push')"
             else
