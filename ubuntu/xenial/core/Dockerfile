@@ -14,4 +14,8 @@ RUN locale-gen en_US.UTF-8
 USER ubuntu
 WORKDIR /home/ubuntu
 ENV HOME=/home/ubuntu
+ENV SHELL=/bin/bash
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8
+COPY ./entrypoint.sh /
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/bin/bash"]
