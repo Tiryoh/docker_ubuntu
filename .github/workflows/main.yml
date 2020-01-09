@@ -88,11 +88,11 @@ jobs:
           docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$IMAGE_TAG-$TIMESTAMP
           docker push $DOCKER_USERNAME/ubuntu:$IMAGE_TAG
           docker push $DOCKER_USERNAME/ubuntu:$IMAGE_TAG-$TIMESTAMP
-          if [[ $(echo $IMAGE_TAG | grep "-core") ]]; then
+          if [[ $(echo $IMAGE_TAG | grep -e "core$") ]]; then
             docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -e 's/-core/-bash/')
             docker push $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -e 's/-core/-bash/')
           fi
-          if [[ $(echo $IMAGE_TAG | grep "-dev") ]]; then
+          if [[ $(echo $IMAGE_TAG | grep -e "dev$") ]]; then
             docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -E 's/(.*)-dev/dev-\1/')
             docker push $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -E 's/(.*)-dev/dev-\1/')
           fi
