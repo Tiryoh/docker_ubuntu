@@ -112,6 +112,7 @@ jobs:
 
       - name: List docker images
         run: |
+          mkdir -p build_log
           docker images | tee ./build_log/docker_images.txt
 
       - uses: actions/upload-artifact@v1
