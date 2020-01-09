@@ -71,8 +71,9 @@ jobs:
           DISTRO: ${{ matrix.distro }}
           TARGET: ${{ matrix.target }}
         run: |
-          trivy --exit-code 0 --severity HIGH --no-progress ubuntu:${DISTRO}-${TARGET}
-          trivy --exit-code 0 --severity CRITICAL --no-progress ubuntu:${DISTRO}-${TARGET}
+          mkdir -p build_log
+          trivy --exit-code 0 --severity HIGH --no-progress ubuntu:${DISTRO}-${TARGET} | tee ./build_log/trivy_log-HIGH.txt
+          trivy --exit-code 0 --severity CRITICAL --no-progress ubuntu:${DISTRO}-${TARGET} | tee ./build_log/trivy_log-CRITICAL.txt
 
       - name: Push docker image to docker.io
         env:
@@ -105,7 +106,15 @@ jobs:
             docker push $DOCKER_USERNAME/ubuntu:$DISTRO-dev
           fi
           if [[ "$IS_LATEST" == "true" ]]; then
-          	docker tag $DOCKER_USERNAME/ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:latest
+          	docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:latest
           	docker push $DOCKER_USERNAME/ubuntu:latest
           fi
-          docker images
+
+      - name: List docker images
+        run: |
+          docker images | tee ./build_log/docker_images.txt
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: docker_build_log
+          path: build_log
