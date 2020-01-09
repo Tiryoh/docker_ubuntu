@@ -1,0 +1,102 @@
+name: Build, Test and Push Docker Image
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 2 * * 0' # Weekly on Sundays at 02:00
+
+jobs:
+  build:
+    name: docker image
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro: [xenial, bionic]
+        target: [core, base, devel]
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 2
+
+      - name: Extract git branch name
+      # ref: https://stackoverflow.com/questions/58033366/how-to-get-current-branch-within-github-actions
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
+      - name: Check the required action
+        env:
+          DISTRO: ${{ matrix.distro }}
+          TARGET: ${{ matrix.target }}
+          GITHUB_ACTIONS_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_ACTIONS_BRANCH: ${{ steps.extract_branch.outputs.branch }}
+        shell: bash
+        run: |
+          if [[ "$GITHUB_ACTIONS_EVENT_NAME" == "schedule" ]]; then
+              echo "##[set-output name=status;]$(echo 'push')"
+          elif [[ $(git diff --name-only HEAD HEAD^ | grep -o ${DISTRO} | grep -o ${TARGET}) ]]; then
+            if [[ "$GITHUB_ACTIONS_BRANCH" == "master" ]]; then
+              echo "##[set-output name=status;]$(echo 'build_and_push')"
+            else
+              echo "##[set-output name=status;]$(echo 'build')"
+            fi
+          else
+            echo "##[set-output name=status;]$(echo 'pass')"
+          fi
+        id: required_action
+
+      - name: Build docker image
+        if: startsWith(steps.required_action.outputs.status, 'build')
+        env:
+          DISTRO: ${{ matrix.distro }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          cd ubuntu/$DISTRO/$TARGET && docker build -t ubuntu:$DISTRO-$TARGET .
+
+      - name: Install trivy
+        if: startsWith(steps.required_action.outputs.status, 'build')
+        run: |
+          sudo apt-get install apt-transport-https gnupg
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -cs) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+
+      - name: Vulnerability Scan with Trivy
+        if: startsWith(steps.required_action.outputs.status, 'build')
+        env:
+          DISTRO: ${{ matrix.distro }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          trivy --exit-code 0 --severity HIGH --no-progress ubuntu:${DISTRO}-${TARGET}
+          trivy --exit-code 0 --severity CRITICAL --no-progress ubuntu:${DISTRO}-${TARGET}
+
+      - name: Push docker image to docker.io
+        env:
+          DISTRO: ${{ matrix.distro }}
+          TARGET: ${{ matrix.target }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        if: startsWith(steps.required_action.outputs.status, 'build_and_push')
+        run: |
+          TIMESTAMP=$(date '+%Y%m%dT%H%M')
+          if [[ "DISTRO" == "bionic" ]] && [[ "TARGET" == "base" ]]; then IS_LATEST="true"; else IS_LATEST="false"; fi
+          IMAGE_TAG=$DISTRO-$TARGET
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin > /dev/null 2>&1
+          docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$IMAGE_TAG
+          docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$IMAGE_TAG-$TIMESTAMP
+          docker push $DOCKER_USERNAME/ubuntu:$IMAGE_TAG
+          docker push $DOCKER_USERNAME/ubuntu:$IMAGE_TAG-$TIMESTAMP
+          if [[ $(echo $IMAGE_TAG | grep "-core") ]]; then
+            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -e 's/-core/-bash/')
+            docker push $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -e 's/-core/-bash/')
+          fi
+          if [[ $(echo $IMAGE_TAG | grep "-dev") ]]; then
+            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -E 's/(.*)-dev/dev-\1/')
+            docker push $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -E 's/(.*)-dev/dev-\1/')
+          fi
+          if [[ "$IS_LATEST" == "true" ]]; then
+          	docker tag $DOCKER_USERNAME/ubuntu:$DISTRO-dev $DOCKER_USERNAME/ubuntu:latest
+          	docker push $DOCKER_USERNAME/ubuntu:latest
+          fi
