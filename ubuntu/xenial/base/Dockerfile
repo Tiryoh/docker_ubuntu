@@ -14,7 +14,11 @@ RUN locale-gen en_US.UTF-8
 USER ubuntu
 WORKDIR /home/ubuntu
 ENV HOME=/home/ubuntu
+ENV SHELL=/bin/bash
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8
 RUN git clone https://github.com/Tiryoh/oneliners.git && \
     git clone https://github.com/Tiryoh/dotfiles.git && \
     /bin/bash -c 'cd ${HOME}/dotfiles; make vim; make deinvim; ./etc/docker/vim_setup.sh; make bash'
+COPY ./entrypoint.sh /
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/bin/bash"]
