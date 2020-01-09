@@ -92,11 +92,13 @@ jobs:
             docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -e 's/-core/-bash/')
             docker push $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -e 's/-core/-bash/')
           fi
-          if [[ $(echo $IMAGE_TAG | grep -e "dev$") ]]; then
+          if [[ $(echo $IMAGE_TAG | grep -e "devel$") ]]; then
             docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -E 's/(.*)-dev/dev-\1/')
-            docker push $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -E 's/(.*)-dev/dev-\1/')
+            docker push $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -E 's/(.*)-devel/dev-\1/')
+            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -e 's/-devel/-dev/')
+            docker push $DOCKER_USERNAME/ubuntu:$(echo $IMAGE_TAG | sed -e 's/-devel/-dev/')
           fi
           if [[ "$IS_LATEST" == "true" ]]; then
-          	docker tag $DOCKER_USERNAME/ubuntu:$DISTRO-dev $DOCKER_USERNAME/ubuntu:latest
+          	docker tag $DOCKER_USERNAME/ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:latest
           	docker push $DOCKER_USERNAME/ubuntu:latest
           fi
