@@ -21,7 +21,6 @@ jobs:
       - uses: actions/checkout@master
 
       - name: Build docker image
-        if: startsWith(steps.required_action.outputs.status, 'build')
         env:
           DISTRO: ${{ matrix.distro }}
           TARGET: ${{ matrix.target }}
@@ -29,7 +28,6 @@ jobs:
           cd ubuntu/$DISTRO/$TARGET && docker build -t ubuntu:$DISTRO-$TARGET .
 
       - name: Install trivy
-        if: startsWith(steps.required_action.outputs.status, 'build')
         run: |
           sudo apt-get install apt-transport-https gnupg
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
@@ -38,7 +36,6 @@ jobs:
           sudo apt-get install trivy
 
       - name: Vulnerability Scan with Trivy
-        if: startsWith(steps.required_action.outputs.status, 'build')
         env:
           DISTRO: ${{ matrix.distro }}
           TARGET: ${{ matrix.target }}
