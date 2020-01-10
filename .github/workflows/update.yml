@@ -10,6 +10,9 @@ on:
   schedule:
     - cron: "0 2 * * 0" # Weekly on Sundays at 02:00
 
+env:
+  DOCKER_USERNAME: tiryoh
+
 jobs:
   skip:
     runs-on: ubuntu-latest
@@ -37,7 +40,6 @@ jobs:
         env:
           DISTRO: ${{ matrix.distro }}
           TARGET: ${{ matrix.target }}
-          DOCKER_USERNAME: "tiryoh"
         run: |
           TIMESTAMP=$(date '+%Y%m%dT%H%M')
           if [[ "$DISTRO" == "bionic" ]] && [[ "$TARGET" == "base" ]]; then IS_LATEST="true"; else IS_LATEST="false"; fi
@@ -58,11 +60,10 @@ jobs:
           	docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:latest
           fi
 
-      - name: Push docker image to docker.io
+      - name: Push docker image to Docker Hub
         env:
           DISTRO: ${{ matrix.distro }}
           TARGET: ${{ matrix.target }}
-          DOCKER_USERNAME: "tiryoh"
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin > /dev/null 2>&1

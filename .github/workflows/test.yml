@@ -10,6 +10,9 @@ on:
   schedule:
     - cron: "0 2 * * 0" # Weekly on Sundays at 02:00
 
+env:
+  DOCKER_USERNAME: tiryoh
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -45,8 +48,6 @@ jobs:
           trivy --exit-code 0 --severity CRITICAL --no-progress ubuntu:${DISTRO}-${TARGET} | tee ./build_log/trivy_log-CRITICAL.txt
 
       - name: List docker images
-        env:
-          DOCKER_USERNAME: "tiryoh"
         run: |
           mkdir -p build_log
           docker image ls "$DOCKER_USERNAME/*" | tee ./build_log/docker_images.txt
