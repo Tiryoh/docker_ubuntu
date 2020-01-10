@@ -47,6 +47,30 @@ jobs:
           trivy --exit-code 0 --severity HIGH --no-progress ubuntu:${DISTRO}-${TARGET} | tee ./build_log/trivy_log-HIGH.txt
           trivy --exit-code 0 --severity CRITICAL --no-progress ubuntu:${DISTRO}-${TARGET} | tee ./build_log/trivy_log-CRITICAL.txt
 
+      - name: Rename docker images
+        env:
+          DISTRO: ${{ matrix.distro }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          TIMESTAMP=$(date '+%Y%m%dT%H%M')
+          if [[ "$DISTRO" == "bionic" ]] && [[ "$TARGET" == "base" ]]; then IS_LATEST="true"; else IS_LATEST="false"; fi
+          IMAGE_TAG=$DISTRO-$TARGET
+          docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$IMAGE_TAG
+          docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$IMAGE_TAG-$TIMESTAMP
+          if [[ "$TARGET" == "core" ]]; then
+            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$DISTRO-bash
+          fi
+          if [[ "$TARGET" == "base" ]]; then
+            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$DISTRO
+          fi
+          if [[ "$TARGET" == "devel" ]]; then
+            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:dev-$DISTRO
+            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$DISTRO-dev
+          fi
+          if [[ "$IS_LATEST" == "true" ]]; then
+          	docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:latest
+          fi
+
       - name: List docker images
         run: |
           mkdir -p build_log
