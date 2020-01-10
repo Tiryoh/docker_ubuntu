@@ -78,5 +78,5 @@ jobs:
 
       - uses: actions/upload-artifact@v1
         with:
-          name: build_log
+          name: build_log-${{ matrix.distro }}-${{ matrix.target }}
           path: build_log
