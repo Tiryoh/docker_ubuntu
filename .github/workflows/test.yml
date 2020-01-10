@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - "ubuntu/**"
+      - ".github/workflows/**"
   schedule:
     - cron: "0 2 * * 0" # Weekly on Sundays at 02:00
 
@@ -47,9 +48,11 @@ jobs:
           trivy --exit-code 0 --severity CRITICAL --no-progress ubuntu:${DISTRO}-${TARGET} | tee ./build_log/trivy_log-CRITICAL.txt
 
       - name: List docker images
+        env:
+          DOCKER_USERNAME: "tiryoh"
         run: |
           mkdir -p build_log
-          docker images | tee ./build_log/docker_images.txt
+          docker image ls "$DOCKER_USERNAME/*" | tee ./build_log/docker_images.txt
 
       - uses: actions/upload-artifact@v1
         with:
