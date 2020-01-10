@@ -1,0 +1,57 @@
+name: Build and Test Docker Image
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "ubuntu/**"
+  schedule:
+    - cron: "0 2 * * 0" # Weekly on Sundays at 02:00
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro: [xenial, bionic]
+        target: [core, base, devel]
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Build docker image
+        if: startsWith(steps.required_action.outputs.status, 'build')
+        env:
+          DISTRO: ${{ matrix.distro }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          cd ubuntu/$DISTRO/$TARGET && docker build -t ubuntu:$DISTRO-$TARGET .
+
+      - name: Install trivy
+        if: startsWith(steps.required_action.outputs.status, 'build')
+        run: |
+          sudo apt-get install apt-transport-https gnupg
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -cs) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+
+      - name: Vulnerability Scan with Trivy
+        if: startsWith(steps.required_action.outputs.status, 'build')
+        env:
+          DISTRO: ${{ matrix.distro }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          mkdir -p build_log
+          trivy --exit-code 0 --severity HIGH --no-progress ubuntu:${DISTRO}-${TARGET} | tee ./build_log/trivy_log-HIGH.txt
+          trivy --exit-code 0 --severity CRITICAL --no-progress ubuntu:${DISTRO}-${TARGET} | tee ./build_log/trivy_log-CRITICAL.txt
+
+      - name: List docker images
+        run: |
+          mkdir -p build_log
+          docker images | tee ./build_log/docker_images.txt
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: build_log
+          path: build_log

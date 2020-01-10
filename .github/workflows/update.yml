@@ -1,0 +1,77 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "ubuntu/**"
+  schedule:
+    - cron: "0 2 * * 0" # Weekly on Sundays at 02:00
+
+jobs:
+  skip:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "[Skip CI] ${{ contains(github.event.head_commit.message, '[skip ci]') }}"
+
+  build:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, '[skip ci]') == false
+    strategy:
+      matrix:
+        distro: [xenial, bionic]
+        target: [core, base, devel]
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Build docker image
+        env:
+          DISTRO: ${{ matrix.distro }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          cd ubuntu/$DISTRO/$TARGET && docker build -t ubuntu:$DISTRO-$TARGET .
+
+      - name: Push docker image to docker.io
+        env:
+          DISTRO: ${{ matrix.distro }}
+          TARGET: ${{ matrix.target }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          TIMESTAMP=$(date '+%Y%m%dT%H%M')
+          if [[ "$DISTRO" == "bionic" ]] && [[ "$TARGET" == "base" ]]; then IS_LATEST="true"; else IS_LATEST="false"; fi
+          IMAGE_TAG=$DISTRO-$TARGET
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin > /dev/null 2>&1
+          docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$IMAGE_TAG
+          docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$IMAGE_TAG-$TIMESTAMP
+          docker push $DOCKER_USERNAME/ubuntu:$IMAGE_TAG
+          docker push $DOCKER_USERNAME/ubuntu:$IMAGE_TAG-$TIMESTAMP
+          if [[ "$TARGET" == "core" ]]; then
+            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$DISTRO-bash
+            docker push $DOCKER_USERNAME/ubuntu:$DISTRO-bash
+          fi
+          if [[ "$TARGET" == "base" ]]; then
+            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$DISTRO
+            docker push $DOCKER_USERNAME/ubuntu:$DISTRO
+          fi
+          if [[ "$TARGET" == "devel" ]]; then
+            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:dev-$DISTRO
+            docker push $DOCKER_USERNAME/ubuntu:dev-$DISTRO
+            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$DISTRO-dev
+            docker push $DOCKER_USERNAME/ubuntu:$DISTRO-dev
+          fi
+          if [[ "$IS_LATEST" == "true" ]]; then
+          	docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:latest
+          	docker push $DOCKER_USERNAME/ubuntu:latest
+          fi
+
+      - name: List docker images
+        run: |
+          mkdir -p build_log
+          docker images | tee ./build_log/docker_images.txt
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: build_log
+          path: build_log
