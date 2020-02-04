@@ -1,3 +1,8 @@
 #!/bin/bash
 set -e
-exec "$@"
+
+if [ $# -gt 1 ]; then
+    echo $@ | /bin/bash -li
+else
+    exec bash -li -c "$@"
+fi
