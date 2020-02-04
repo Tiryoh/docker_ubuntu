@@ -12,6 +12,7 @@ on:
 
 env:
   DOCKER_USERNAME: tiryoh
+  DOCKER_IMAGENAME: ubuntu
 
 jobs:
   build:
@@ -51,24 +52,24 @@ jobs:
         env:
           DISTRO: ${{ matrix.distro }}
           TARGET: ${{ matrix.target }}
+          DOCKER_TAGNAME: ${{ matrix.distro }}-${{ matrix.target }}
         run: |
           TIMESTAMP=$(date '+%Y%m%dT%H%M')
           if [[ "$DISTRO" == "bionic" ]] && [[ "$TARGET" == "base" ]]; then IS_LATEST="true"; else IS_LATEST="false"; fi
-          IMAGE_TAG=$DISTRO-$TARGET
-          docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$IMAGE_TAG
-          docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$IMAGE_TAG-$TIMESTAMP
+          docker tag ${DOCKER_IMAGENAME}:${DOCKER_TAGNAME} $DOCKER_USERNAME/${DOCKER_IMAGENAME}:${DOCKER_TAGNAME}
+          docker tag ${DOCKER_IMAGENAME}:${DOCKER_TAGNAME} $DOCKER_USERNAME/${DOCKER_IMAGENAME}:${DOCKER_TAGNAME}-${TIMESTAMP}
           if [[ "$TARGET" == "core" ]]; then
-            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$DISTRO-bash
+            docker tag ${DOCKER_IMAGENAME}:${DOCKER_TAGNAME} $DOCKER_USERNAME/${DOCKER_IMAGENAME}:$DISTRO-bash
           fi
           if [[ "$TARGET" == "base" ]]; then
-            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$DISTRO
+            docker tag ${DOCKER_IMAGENAME}:${DOCKER_TAGNAME} $DOCKER_USERNAME/${DOCKER_IMAGENAME}:$DISTRO
           fi
           if [[ "$TARGET" == "devel" ]]; then
-            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:dev-$DISTRO
-            docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:$DISTRO-dev
+            docker tag ${DOCKER_IMAGENAME}:${DOCKER_TAGNAME} $DOCKER_USERNAME/${DOCKER_IMAGENAME}:dev-$DISTRO
+            docker tag ${DOCKER_IMAGENAME}:${DOCKER_TAGNAME} $DOCKER_USERNAME/${DOCKER_IMAGENAME}:$DISTRO-dev
           fi
           if [[ "$IS_LATEST" == "true" ]]; then
-          	docker tag ubuntu:$IMAGE_TAG $DOCKER_USERNAME/ubuntu:latest
+          	docker tag ${DOCKER_IMAGENAME}:${DOCKER_TAGNAME} $DOCKER_USERNAME/${DOCKER_IMAGENAME}:latest
           fi
 
       - name: List docker images
