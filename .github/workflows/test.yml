@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        distro: [xenial, bionic]
+        distro: [xenial, bionic, focal]
         target: [core, base, devel]
     steps:
       - uses: actions/checkout@master
