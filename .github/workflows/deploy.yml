@@ -27,7 +27,7 @@ jobs:
     if: contains(github.event.head_commit.message, '[skip ci]') == false
     strategy:
       matrix:
-        distro: [xenial, bionic]
+        distro: [xenial, bionic, focal]
         target: [core, base, devel]
       max-parallel: 1
       
