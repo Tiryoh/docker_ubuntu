@@ -22,7 +22,7 @@ jobs:
         distro: [xenial, bionic, focal]
         target: [core, base, devel]
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
 
       - name: Build docker image
         env:
